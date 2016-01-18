@@ -1,0 +1,100 @@
+<App Theme="Basic" ClearColor="#262626">
+	<StackPanel>
+		<JavaScript>
+			var Observable = require("FuseJS/Observable");
+
+			var tracks = Observable();
+			var errorMessage = Observable();
+			var track = Observable("");
+
+			var search = function() {
+
+				
+
+				var uri = "https://api.spotify.com/v1/search?q=" + track.value + "&type=track";
+				uri = uri.replace(" ","_");
+				debug_log("HEY YOU CLICKED " + uri);
+
+				fetch("https://api.spotify.com/v1/search?q=" + track.value + "&type=track")
+					.then(function(result) {
+						if (result.status !== 200) {
+							debug_log("Something went wrong, status code: " + result.status);
+							errorMessage.value = "Oh noes! :(";
+							return;
+						}
+
+						//throw "Some error";
+
+						return result.json();
+					}).then(function(data) {
+						debug_log("Success! YAY");
+
+						for (var i = 0; i < 10; i++) {
+							var item = data.tracks.items[i];
+							tracks.add(item);
+						}
+					}).catch(function(error) {
+						debug_log("Fetch error " + error);
+						errorMessage.value = "Oh noes! :(";
+					});
+			}
+
+			module.exports = {
+				tracks: tracks,
+				errorMessage: errorMessage,
+				search: search,
+				track: track
+			};
+		</JavaScript>
+
+		<StatusBarBackground DockPanel.Dock="Top" />
+
+		<Text TextColor="#a94442" Value="{errorMessage}" Alignment="Center" />
+
+		<DockPanel Margin="10" Alignment="Top">
+					<TextInput Value="{track}" Margin="10,10,10,0" Width="70%" Alignment="Left" TextColor="#fff" PlaceholderText="Type a song name" PlaceholderColor="#fff"/>
+					<Button Clicked="{search}" Alignment="Right" Margin="10" Width="20%" Height="50" Text="Search"/>
+		</DockPanel>
+
+		<ScrollView ClipToBounds="true">
+			<StackPanel>
+				
+				<Each Items="{tracks}">
+					<StackPanel Margin="15,5,15,5" Orientation="Horizontal">
+
+						<StackPanel>
+							<Each Items="{album.images}">
+								<Panel>
+									<Match Value="{height}">
+										<Case Number="64">
+											<Image Url="{url}" Alignment="Left"/>
+										</Case>
+									</Match>
+								</Panel>
+							</Each>
+						</StackPanel>
+
+						<StackPanel Margin="0,10,0,0" Alignment="Bottom">
+							<Text Value="{name}" TextWrapping="Wrap" TextColor="#fff" Margin="10,0,0,0"/>
+							<StackPanel Orientation="Horizontal">
+								<Each Items="{artists}">
+									<Text Value="{name}" TextWrapping="Wrap" TextColor="#fff" Margin="10,0,0,0"/>
+								</Each>
+							</StackPanel>
+							<Text Value="{album.name}" TextWrapping="Wrap" TextColor="#fff" Margin="10,0,0,0"/>
+						</StackPanel>
+
+
+
+					</StackPanel>
+
+					<StackPanel>
+							<Rectangle Height="1" Width="100%" Fill="#fff" Margin="20,5,20,5"/>
+					</StackPanel>
+				</Each>
+
+			</StackPanel>
+		</ScrollView>
+
+	</StackPanel>
+</App>
